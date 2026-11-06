@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.DS_Store
+repository.db
+uploads/*
+!uploads/README.md
+thumbnails/*
+!thumbnails/README.md
+downloads/
+.venv/
