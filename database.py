@@ -1,5 +1,4 @@
 # Registrar usuários, arquivos e histórico
-# (reaproveitado da APS 01, nao depende do transporte)
 import sqlite3
 import hashlib
 import threading
