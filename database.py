@@ -67,10 +67,12 @@ def cadastrar_usuario(nome, senha):
     with trava:
         con = conectar()
         cur = con.cursor()
-        cur.execute("INSERT INTO usuarios (nome, senha_hash, criado_em) VALUES (?, ?, ?)",
-                    (nome, hash_senha(senha), agora()))
-        con.commit()
-        con.close()
+        try:
+            cur.execute("INSERT INTO usuarios (nome, senha_hash, criado_em) VALUES (?, ?, ?)",
+                        (nome, hash_senha(senha), agora()))
+            con.commit()
+        finally:
+            con.close()
 
 
 def senha_confere(nome, senha):
@@ -89,10 +91,13 @@ def registrar_imagem(id_img, nome, autor, tamanho, caminho, caminho_thumb):
     with trava:
         con = conectar()
         cur = con.cursor()
-        cur.execute("INSERT INTO imagens (id, nome, autor, tamanho, data_envio, caminho, caminho_thumb) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    (id_img, nome, autor, tamanho, agora(), caminho, caminho_thumb))
-        con.commit()
-        con.close()
+        # mesmo caso do cadastrar_usuario, com id repetido
+        try:
+            cur.execute("INSERT INTO imagens (id, nome, autor, tamanho, data_envio, caminho, caminho_thumb) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (id_img, nome, autor, tamanho, agora(), caminho, caminho_thumb))
+            con.commit()
+        finally:
+            con.close()
 
 
 def imagem_existe(id_img):
