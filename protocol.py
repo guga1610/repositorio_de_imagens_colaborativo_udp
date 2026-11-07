@@ -1,24 +1,33 @@
-"""Funções auxiliares para empacotar e interpretar mensagens UDP."""
 
-TAM_BUFFER = 65535
+SEPARADOR = "|"
+TAM_BUFFER = 65535   
+
+QUADRO = b"FRM"
+ACK = b"ACK"
+FIM_ARQUIVO = b"EOF"
+ARQUIVO_OK = b"OKF"
+ARQUIVO_ERRO = b"ERR"
+TAM_ACK = len(ACK) + 4
 
 
 def montar(*campos):
-    """Cria um pacote textual a partir de campos separados por '|'."""
-    texto = "|".join(str(campo) for campo in campos)
-    return texto.encode("utf-8")
+    """Junta os campos com | e devolve bytes. Ex: montar("OK", 12) -> b"OK|12"."""
+    return SEPARADOR.join(str(c) for c in campos).encode("utf-8")
 
 
 def ler(pacote):
-    """Lê um pacote textual e retorna a lista de campos."""
+    """Separa um pacote de texto em campos. Nunca da erro e sempre devolve pelo menos 1 campo
+    (o client.py le resposta[0] direto, entao uma lista vazia quebraria ele)."""
     if pacote is None:
-        return []
+        return [""]
+    if isinstance(pacote, (bytes, bytearray)):
+        pacote = bytes(pacote).decode("utf-8", errors="replace")
+    return pacote.rstrip("\r\n").split(SEPARADOR)
 
-    if isinstance(pacote, bytes):
-        pacote = pacote.decode("utf-8", errors="strict")
 
-    texto = pacote.strip()
-    if not texto:
-        return []
-
-    return texto.split("|")
+def eh_transferencia(pacote):
+    """True se o pacote e da transferencia de arquivo (e nao um comando de texto).
+    OKF e ERR so contam quando sao o pacote inteiro, para nao confundir com ERRO|motivo."""
+    return (pacote.startswith((QUADRO, FIM_ARQUIVO))
+            or (pacote.startswith(ACK) and len(pacote) == TAM_ACK)
+            or pacote in (ARQUIVO_OK, ARQUIVO_ERRO))
